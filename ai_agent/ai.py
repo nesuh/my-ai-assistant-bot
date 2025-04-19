@@ -3,6 +3,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from telegram import Update
+import fastapi  
 from telegram.ext import ContextTypes
 
 # Load environment variables
