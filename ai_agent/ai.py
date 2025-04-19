@@ -1,3 +1,4 @@
+import json
 import os
 import requests
 from dotenv import load_dotenv
@@ -10,31 +11,48 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
+# Updated load_portfolio_data() function
+def load_portfolio_data():
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        utils_dir = os.path.join(current_dir, "..", "utils")  
+        file_path = os.path.join(utils_dir, "history.json")
+        
+        print(f"DEBUG: Attempting to load from {file_path}")  
+        
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File not found at: {file_path}")
+            
+        with open(file_path, "r") as f:
+            data = json.load(f)
+            print("DEBUG: Successfully loaded portfolio data")  # Debug print
+            return data
+            
+    except json.JSONDecodeError as e:
+        print(f"ERROR: Invalid JSON in history.json: {e}")
+        raise
+    except Exception as e:
+        print(f"ERROR loading portfolio data: {e}")
+        raise
 
-PORTFOLIO_PROMPT = """
-You are an AI assistant for Antenhe Sileshi’s personal portfolio.
 
-Alias: "Antenhe" refers to Antenhe Sileshi.
-
-Only use these facts to answer. If outside scope, reply "I’m sorry, I don’t have that information."
-
-Facts about Antenhe:
-- Passionate backend developer in Ethiopia
-- Specializes in NestJS, TypeScript, PostgreSQL, REST APIs, scalable systems
-- Projects:
-  1. Todo List Manager – Task management tool
-  2. GPT Assistant – Chatbot using OpenAI API
-  3. DMU Placement System – Automates student–department matching
-  4. Slack API Registration – Automates Slack setup
-  5. Fetan Payment – Secure wallet payments
-"""
-
+try:
+    portfolio_data = load_portfolio_data() 
+except FileNotFoundError as e:
+    print(f"Error: {e}")
+    portfolio_data = None  
 
 def ask_groq(user_question: str) -> str:
+    if portfolio_data is None:
+        return "⚠️ Portfolio data could not be loaded."
+
     payload = {
         'model': 'llama-3.3-70b-versatile',
         'messages': [
-            {'role': 'system', 'content': PORTFOLIO_PROMPT},
+            {'role': 'system', 'content': portfolio_data['intro']},
+            {'role': 'system', 'content': portfolio_data['note']},
+            {'role': 'system', 'content': portfolio_data['instruction']},
+            {'role': 'system', 'content': json.dumps(portfolio_data['facts'])},
             {'role': 'user', 'content': user_question}
         ],
         'temperature': 0.0,
@@ -58,6 +76,7 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Inform user processing
     await update.message.reply_text("🤔 Let me think...")
+
     try:
         answer = ask_groq(user_question)
         await update.message.reply_text(answer)

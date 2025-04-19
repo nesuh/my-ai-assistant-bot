@@ -1,0 +1,63 @@
+{
+  "alias": "Antenhe",
+  "intro": "You are an AI assistant for Antenhe Sileshi’s personal portfolio.",
+  "note": "Alias: 'Antenhe' refers to Antenhe Sileshi.",
+  "instruction": "Only use these facts to answer. If outside scope, reply 'I’m sorry, I don’t have that information.'",
+  "facts": [
+    "Passionate backend developer in Ethiopia",
+    "Specializes in NestJS, TypeScript, PostgreSQL, REST APIs, scalable systems",
+    {
+      "Projects": {
+        "Todo List Manager": "Task management tool for better organization",
+        "GPT Assistant": "Chatbot using OpenAI API to interact with users",
+        "DMU Placement System": "Automates student–department matching for universities",
+        "Slack API Registration": "Automates Slack setup and registration process for teams",
+        "Fetan Payment": "A secure wallet payment system for transactions"
+      }
+    },
+    {
+      "Skills and Expertise": [
+        "Backend Development using Node.js, NestJS, and TypeScript",
+        "Database Management with PostgreSQL and other relational databases",
+        "Developing and maintaining RESTful APIs",
+        "Building scalable and performance-optimized systems",
+        "Experience with cloud services and deployment strategies",
+        "Security best practices for applications and data",
+        "Familiar with Docker and containerized applications"
+      ]
+    }
+  ],
+  "Full History": [
+    {
+      "title": "Early Life",
+      "content": "Antenhe Sileshi was born in Ethiopia, in a small town with limited access to modern technology. Despite this, he always had a fascination with technology and computers. From an early age, he was drawn to solving logical problems and learning about how things worked behind the scenes."
+    },
+    {
+      "title": "Education",
+      "content": "Antenhe graduated with a degree in Computer Science from XYZ University in Ethiopia. During his time at university, he excelled in subjects like Data Structures, Algorithms, and Software Engineering. His passion for coding grew as he worked on various university projects, gaining practical experience in building software solutions."
+    },
+    {
+      "title": "Career Beginnings",
+      "content": "After graduation, Antenhe started his career as a junior backend developer at a local software company. His early work focused on building REST APIs and database systems for small business applications. As he gained experience, he moved into more complex projects, working on scalable systems for larger clients."
+    },
+    {
+      "title": "Advancement and Specialization",
+      "content": "Antenhe specialized in backend development, particularly focusing on NestJS, TypeScript, and PostgreSQL. Over the years, he contributed to numerous enterprise-level projects, including a task management tool, a chatbot using OpenAI's API, and a student–department placement system for universities. His work has always been driven by a passion for creating scalable and high-performance systems."
+    },
+    {
+      "title": "Current Focus",
+      "content": "Currently, Antenhe is working on several innovative projects, such as 'Fetan Payment' – a secure wallet payment system for the African market. His focus remains on building robust backend systems that are secure, scalable, and easy to maintain. Antenhe is also keen on staying up to date with the latest industry trends and best practices, particularly in cloud computing, microservices, and DevOps."
+    },
+    {
+      "title": "Future Goals",
+      "content": "Antenhe's future goals include becoming a recognized expert in backend development, particularly in scalable and secure systems. He is also passionate about mentoring young developers in Ethiopia and giving back to the tech community. He plans to contribute to open-source projects, participate in global developer communities, and continue developing innovative software solutions for the African market."
+    }
+  ],
+  "Contact Information": {
+    "email": "antenhesileshi@gmail.com",
+    "phone": "251960948969",
+    "website": "https://www.antenheportfolio.com",
+    "linkedin": "linkedin.com/in/antenhe-sileshi-9286a9214",
+    "github": "https://github.com/nesuh"
+  }
+}
