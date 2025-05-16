@@ -1,24 +1,30 @@
 import logging
 import os
+import asyncio
+import threading
+from typing import Optional
 from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import uvicorn
+import telegram
+from telegram import Update
 from telegram.ext import (
-    ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+    ApplicationBuilder,
+    CommandHandler,
+    CallbackQueryHandler,
+    ContextTypes
 )
 from commands.start import start
 from commands.help import help
 from commands.projects import handle, button
 from ai_agent.ai import ask, ask_groq
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import uvicorn
-import threading
-from typing import Optional
 
-# Load env variables
+# Load environment variables
 load_dotenv()
 
-# Enable logging
+# Configure logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -30,7 +36,7 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 # FastAPI setup
 web_app = FastAPI(title="Antenhe Assistant API")
 
-# Add CORS middleware
+# CORS middleware
 web_app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -39,12 +45,11 @@ web_app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pydantic model for API requests
+# Request model
 class QuestionRequest(BaseModel):
     question: str
     context: Optional[str] = None
 
-# API Endpoints
 @web_app.get("/")
 async def health_check():
     return {
@@ -58,7 +63,6 @@ async def health_check():
 
 @web_app.post("/api/ask")
 async def api_ask_endpoint(request: QuestionRequest):
-    """Endpoint for website queries"""
     try:
         if not request.question.strip():
             raise HTTPException(status_code=400, detail="Question cannot be empty")
@@ -67,20 +71,13 @@ async def api_ask_endpoint(request: QuestionRequest):
         return {
             "status": "success",
             "answer": answer,
-            "truncated": len(answer) >= 1024  # Indicate if response was truncated
+            "truncated": len(answer) >= 1024
         }
-        
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"API ask error: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail="An error occurred while processing your question"
-        )
+        logger.error(f"API error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 def run_fastapi():
-    """Run FastAPI server in production"""
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(
         web_app,
@@ -90,26 +87,39 @@ def run_fastapi():
         access_log=False
     )
 
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    """Handle Telegram bot errors"""
+    error = context.error
+    if isinstance(error, telegram.error.Conflict):
+        logger.warning("Conflict detected - restarting polling")
+        await asyncio.sleep(5)
+        await context.application.updater.stop()
+        await context.application.updater.start_polling()
+    else:
+        logger.error(f"Unhandled error: {error}", exc_info=True)
+
 async def on_startup(app):
-    """Telegram bot startup tasks"""
+    """Initialize bot commands"""
     await app.bot.set_my_commands([
         ("start", "Start the bot"),
         ("help", "Show help info"),
         ("projects", "Show Antenhe's projects"),
         ("ask", "Ask the AI about Antenhe Sileshi"),
     ])
-    logger.info("Bot commands set up successfully")
+    logger.info("Bot commands initialized")
 
 def main():
-    """Main application entry point"""
-    # Start FastAPI server in a separate thread
+    # Start FastAPI in separate thread
     server_thread = threading.Thread(target=run_fastapi, daemon=True)
     server_thread.start()
 
-    # Build and run Telegram bot
+    # Configure bot with conflict prevention
     app = ApplicationBuilder() \
         .token(BOT_TOKEN) \
         .post_init(on_startup) \
+        .concurrent_updates(False) \
+        .http_version("1.1") \
+        .get_updates_http_version("1.1") \
         .build()
 
     # Add handlers
@@ -118,9 +128,18 @@ def main():
     app.add_handler(CommandHandler("projects", handle))
     app.add_handler(CallbackQueryHandler(button))
     app.add_handler(CommandHandler("ask", ask))
+    app.add_error_handler(error_handler)
 
-    logger.info("🤖 Bot is running...")
-    app.run_polling()
+    # Start polling with conflict-resistant settings
+    logger.info("Starting bot with conflict-resistant polling...")
+    app.run_polling(
+        poll_interval=2.0,
+        timeout=30,
+        drop_pending_updates=True,
+        allowed_updates=Update.ALL_TYPES,
+        close_loop=False,
+        stop_signals=[]
+    )
 
 if __name__ == "__main__":
     main()
